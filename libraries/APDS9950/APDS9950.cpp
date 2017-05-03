@@ -2,6 +2,76 @@
  #include <Wire.h>
  
  #include "APDS9950.h"
+ /**
+	* @brief Constructor - Instantiates APDS9950 object
+*/
+APDS9950::APDS9950()
+{
+
+}
+
+/**
+	* @brief Destructor
+*/
+APDS9950::~APDS9950()
+{
+	
+}
+/**
+	* @brief Configures I2C communications and initializes registers to defaults
+	*
+	* @return True if initialized successfully. False otherwise.
+	*/
+	bool APDS9950::init()
+	{
+    uint8_t id;
+	
+    /* Initialize I2C */
+    Wire.begin();
+	
+    /* Read ID register and check against known values for APDS-9960 */
+    if( !wireReadDataByte(APDS9950_ID, id) ) {
+	return false;
+    }
+    if( !(id == APDS9950_ID_1 || id == APDS9950_ID_2) ) {
+	return false;
+    }
+	
+    /* Set ENABLE register to 0 (disable all features) */
+    if( !setMode(ALL, OFF) ) {
+	return false;
+    }
+    
+	#if 0
+    /* Gesture config register dump */
+    uint8_t reg;
+    uint8_t val;
+	
+    for(reg = 0x00; reg <= 0xAF; reg++) {
+	if( (reg != 0x02) && \
+	(reg != 0x0A) && \
+	(reg != 0x11) && \
+	(reg != 0xA8) && \
+	(reg != 0xAC) && \
+	(reg != 0xAD) )
+	{
+	wireReadDataByte(reg, val);
+	Serial.print(reg, HEX);
+	Serial.print(": 0x");
+	Serial.println(val, HEX);
+	}
+    }
+	
+    for(reg = 0xE4; reg <= 0xE7; reg++) {
+	wireReadDataByte(reg, val);
+	Serial.print(reg, HEX);
+	Serial.print(": 0x");
+	Serial.println(val, HEX);
+    }
+	#endif
+	
+    return true;
+	}
  
  /*******************************************************************************
  * Public methods for controlling the APDS-9950
@@ -12,15 +82,15 @@
  *
  * @return Contents of the ENABLE register. 0xFF if error.
  */
-uint8_t getMode()
+uint8_t APDS9950::getMode()
 {
-    uint8_t enable_value;
-    
-    /* Read current ENABLE register */
-    if( !wireReadDataByte(APDS9950_ENABLE, enable_value) ) {
-        return ERROR;
+	uint8_t enable_value;
+	
+	Wire.requestFrom(APDS9950_I2C_ADDR, 1);
+    while (Wire.available()) {
+        enable_value = Wire.read();
     }
-    
+
     return enable_value;
 }
 
@@ -31,7 +101,7 @@ uint8_t getMode()
  * @param[in] enable ON (1) or OFF (0)
  * @return True if operation success. False otherwise.
  */
-bool setMode(uint8_t mode, uint8_t enable)
+bool APDS9950::setMode(uint8_t mode, uint8_t enable)
 {
     uint8_t reg_val;
 
@@ -70,7 +140,7 @@ bool setMode(uint8_t mode, uint8_t enable)
  *
  * @return True if operation successful. False otherwise.
  */
-bool enablePower()
+bool APDS9950::enablePower()
 {
     if( !setMode(POWER, 1) ) {
         return false;
@@ -84,7 +154,7 @@ bool enablePower()
  *
  * @return True if operation successful. False otherwise.
  */
-bool disablePower()
+bool APDS9950::disablePower()
 {
     if( !setMode(POWER, 0) ) {
         return false;
@@ -103,7 +173,7 @@ bool disablePower()
  * @param[in] val the 1-byte value to write to the I2C device
  * @return True if successful write operation. False otherwise.
  */
-bool wireWriteByte(uint8_t val)
+bool APDS9950::wireWriteByte(uint8_t val)
 {
     Wire.beginTransmission(APDS9950_I2C_ADDR);
     Wire.write(val);
@@ -121,7 +191,7 @@ bool wireWriteByte(uint8_t val)
  * @param[in] val the 1-byte value to write to the I2C device
  * @return True if successful write operation. False otherwise.
  */
-bool wireWriteDataByte(uint8_t reg, uint8_t val)
+bool APDS9950::wireWriteDataByte(uint8_t reg, uint8_t val)
 {
     Wire.beginTransmission(APDS9950_I2C_ADDR);
     Wire.write(reg);
@@ -141,7 +211,7 @@ bool wireWriteDataByte(uint8_t reg, uint8_t val)
  * @param[in] len the length (in bytes) of the data to write
  * @return True if successful write operation. False otherwise.
  */
-bool wireWriteDataBlock(  uint8_t reg, 
+bool APDS9950::wireWriteDataBlock(  uint8_t reg, 
                                         uint8_t *val, 
                                         unsigned int len)
 {
@@ -166,7 +236,7 @@ bool wireWriteDataBlock(  uint8_t reg,
  * @param[out] the value returned from the register
  * @return True if successful read operation. False otherwise.
  */
-bool wireReadDataByte(uint8_t reg, uint8_t &val)
+bool APDS9950::wireReadDataByte(uint8_t reg, uint8_t &val)
 {
     
     /* Indicate which register we want to read from */
@@ -191,7 +261,7 @@ bool wireReadDataByte(uint8_t reg, uint8_t &val)
  * @param[in] len number of bytes to read
  * @return Number of bytes read. -1 on read error.
  */
-int wireReadDataBlock(   uint8_t reg, 
+int APDS9950::wireReadDataBlock(   uint8_t reg, 
                                         uint8_t *val, 
                                         unsigned int len)
 {

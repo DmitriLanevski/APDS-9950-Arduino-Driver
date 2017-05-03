@@ -31,8 +31,8 @@
 #define ERROR                   0xFF
 
 /* Acceptable device IDs */
-#define APDS9950				0x12
-
+#define APDS9950_ID_1			0x12
+#define APDS9950_ID_2			0x69
 
 /* Misc parameters */
 #define FIFO_PAUSE_TIME         30      // Wait period (ms) between FIFO reads
@@ -191,15 +191,22 @@
 #define DEFAULT_GIEN            0       // Disable gesture interrupts
 
 
+/* APDS9950 Class */
+class APDS9950 {
+public:
+
     /* Initialization methods */
+    APDS9950();
+    ~APDS9950();
+    bool init();
     uint8_t getMode();
     bool setMode(uint8_t mode, uint8_t enable);
     
-    /* Turn the APDS-9950 on and off */
+    /* Turn the APDS-9960 on and off */
     bool enablePower();
     bool disablePower();
     
-
+private:
 
     /* Raw I2C Commands */
     bool wireWriteByte(uint8_t val);
@@ -207,5 +214,6 @@
     bool wireWriteDataBlock(uint8_t reg, uint8_t *val, unsigned int len);
     bool wireReadDataByte(uint8_t reg, uint8_t &val);
     int wireReadDataBlock(uint8_t reg, uint8_t *val, unsigned int len);
+};
 
 #endif
