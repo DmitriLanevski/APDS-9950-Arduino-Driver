@@ -6,6 +6,9 @@ APDS9950 apds = APDS9950();
 
 
 void setup() {
+  pinMode(5, OUTPUT);
+  digitalWrite(5, HIGH);
+
   // put your setup code here, to run once:
   Serial.begin(9600);
 
@@ -22,18 +25,18 @@ void loop() {
   if (apds.enablePower()) {
     Serial.println("Power enabled");
   }
-  
   delay(1000);
+
   uint8_t a;
   a = apds.getMode();
   Serial.println(a, HEX);
   delay(1000);
-  
+
   if (apds.disablePower()) {
     Serial.println("Power disabled");
   }
   delay(1000);
-  
+
   a = apds.getMode();
   Serial.println(a, HEX);
   Serial.println();
